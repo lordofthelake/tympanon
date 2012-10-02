@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web>
+	<config>
+		<port>8080</port>
+		<docroot>www</docroot>
+		<index>index.html</index>
+	</config>
+	<routes>
+		<route for="*">it.unisannio.ing.webserver.weblets.StaticWeblet</route>
+		<route for="/helloworld">it.unisannio.ing.webserver.weblets.HelloWorldWeblet</route>
+		<route for="/get">it.unisannio.ing.webserver.weblets.GetParametersWeblet</route>
+		<route for="/ReverseServlet">it.unisannio.ing.webserver.weblets.ReverseWeblet</route>
+		<route for="/SumServlet">it.unisannio.ing.webserver.weblets.SumWeblet</route>
+		<route for="/CalcServlet">it.unisannio.ing.webserver.weblets.CalcWeblet</route>
+		<route for="/VerifyServlet">it.unisannio.ing.webserver.weblets.VerifyWeblet</route>
+	</routes>
+</web>
