@@ -1,4 +1,6 @@
-package it.unisannio.ing.webserver;
+package it.michelepiccirillo.tympanon;
+
+import it.michelepiccirillo.tympanon.HttpResponse.Status;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -7,7 +9,7 @@ public final class HttpUtils {
 	private HttpUtils() {}
 	
 	public static void send404(HttpResponse res, String path) throws IOException {
-		res.setStatus("404 Not Found");
+		res.setStatus(Status.NOT_FOUND);
 		PrintWriter w = res.getWriter();
 		
 		w.println("<!doctype html>");
@@ -21,7 +23,7 @@ public final class HttpUtils {
 	}
 	
 	public static void send400(HttpResponse res, String message) throws IOException {
-		res.setStatus("400 Bad Request");
+		res.setStatus(Status.BAD_REQUEST);
 		PrintWriter w = res.getWriter();
 		
 		w.println("<!doctype html>");
@@ -36,7 +38,7 @@ public final class HttpUtils {
 	}
 	
 	public static void send500(HttpResponse res, Exception e) throws IOException {
-		res.setStatus("500 Internal Server Error");
+		res.setStatus(Status.INTERNAL_SERVER_ERROR);
 		PrintWriter w = res.getWriter();
 		
 		w.println("<!doctype html>");
@@ -52,7 +54,7 @@ public final class HttpUtils {
 	}
 
 	public static void send403(HttpResponse res) throws IOException {
-		res.setStatus("403 Forbidden");
+		res.setStatus(Status.FORBIDDEN);
 		PrintWriter w = res.getWriter();
 		
 		w.println("<!doctype html>");

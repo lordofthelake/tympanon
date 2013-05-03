@@ -1,4 +1,4 @@
-package it.unisannio.ing.webserver;
+package it.michelepiccirillo.tympanon;
 
 public class HttpFormatException extends Exception {
 	private static final long serialVersionUID = 837910846054497673L;

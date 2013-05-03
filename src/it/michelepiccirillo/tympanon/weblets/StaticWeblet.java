@@ -1,11 +1,11 @@
-package it.unisannio.ing.webserver.weblets;
+package it.michelepiccirillo.tympanon.weblets;
 
 import java.io.*;
 import java.net.URLConnection;
 
-import it.unisannio.ing.webserver.*;
+import it.michelepiccirillo.tympanon.*;
 
-public class StaticWeblet implements Weblet {
+public class StaticWeblet implements Route {
 	private File documentRoot;
 	private String index;
 	
@@ -41,7 +41,6 @@ public class StaticWeblet implements Weblet {
 		}
 	}
 
-	@Override
 	public void initialize(Config config) {
 		documentRoot = new File(config.getParameter("docroot", "www")).getAbsoluteFile();		
 		index = config.getParameter("index", "index.html");
