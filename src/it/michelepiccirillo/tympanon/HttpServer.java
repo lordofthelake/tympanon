@@ -5,22 +5,31 @@ import it.michelepiccirillo.tympanon.HttpResponse.Status;
 import java.io.*;
 import java.net.*;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HttpServer implements Runnable {
-	private Config config;
 	
 	private Map<String, Route> routes = new HashMap<String, Route>();
+	private Map<Pattern, Route> matchers = new LinkedHashMap<Pattern, Route>();
 	
 	private final InetSocketAddress address;
 	private final Executor executor;
+	private Route defaultRoute;
 	
 	public HttpServer(InetSocketAddress address, Executor executor) {
 		this.address = address;
 		this.executor = executor;
+	}
+	
+	public HttpServer(InetSocketAddress address) {
+		this(address, Executors.newCachedThreadPool());
 	}
 	
 	public void run() {
@@ -52,7 +61,7 @@ public class HttpServer implements Runnable {
 									res.setHeader("Content-Type", "text/html");
 									
 									try {
-										Route route = getWebletFor(req.getPath());
+										Route route = getRoute(req.getPath());
 									
 										if(route == null) {
 											HttpUtils.send404(res, req.getPath());
@@ -70,7 +79,7 @@ public class HttpServer implements Runnable {
 							} catch (SocketException se) {
 								break;
 							} catch (IOException e) {
-								e.printStackTrace();
+								log.log(Level.WARNING, "I/O Error", e);
 							} 
 						}
 						
@@ -86,31 +95,49 @@ public class HttpServer implements Runnable {
 		
 	}
 	
-	public Config getConfig() {
-		return config;
+	public HttpServer route(String url, Route route) {
+		if(url == null)
+			throw new IllegalArgumentException("URL cannot be null");
+		
+		if(route == null)
+			routes.remove(route);
+		else
+			routes.put(url, route);
+		
+		return this;
 	}
 	
-	public Route getWebletFor(String path) throws ClassNotFoundException, ClassCastException {
-		String className = config.getRouteFor(path);
-		if(className == null)
-			className = config.getRouteFor("*");
+	public HttpServer route(Pattern pattern, Route route) {
+		if(pattern == null)
+			throw new IllegalArgumentException("URL cannot be null");
 		
-		if(className == null)
-			return null;
+		if(route == null)
+			matchers.remove(pattern);
+		else
+			matchers.put(pattern, route);
 		
-		if(!routes.containsKey(className)) {
-			try {
-				Route route = (Route) Class.forName(className).newInstance();
-				//route.initialize(this.getConfig());
-				routes.put(className, route);
-			} catch (IllegalAccessException e) { 
-				return null; 
-			} catch (InstantiationException e) { 
-				return null; 
-			}
+		return this;
+	}
+	
+	public HttpServer route(Route route) {
+		this.defaultRoute = route;
+		
+		return this;
+	}
+	
+	public Route getRoute(String path) {
+		if(routes.containsKey(path))
+			return routes.get(path);
+		
+		for(Map.Entry<Pattern, Route> e : matchers.entrySet()) {
+			Pattern p = e.getKey();
+			Matcher m = p.matcher(path);
+			if(m.matches())
+				return e.getValue();
 		}
 		
-		return routes.get(className);
+		return defaultRoute;
+		
 	}
 	
 }

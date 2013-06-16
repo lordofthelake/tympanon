@@ -1,10 +1,6 @@
 package it.michelepiccirillo.tympanon;
 
 
-
-import static it.michelepiccirillo.tympanon.HttpRequest.Method.GET;
-import static it.michelepiccirillo.tympanon.HttpRequest.Method.POST;
-
 import java.io.*;
 import java.net.SocketException;
 import java.net.URLDecoder;
@@ -20,16 +16,26 @@ public class HttpRequest {
 		OPTIONS("OPTIONS"),
 		GET("GET"),
 		HEAD("HEAD"),
-		POST("POST"),
-		PUT("PUT"),
+		POST("POST", true),
+		PUT("PUT", true),
 		DELETE("DELETE"),
 		TRACE("TRACE"),
 		CONNECT("CONNECT");
 	
 		private final String token;
+		private final boolean hasBody;
+		
+		private Method(String token, boolean hasBody) {
+			this.token = token;
+			this.hasBody = hasBody;
+		}
 		
 		private Method(String token) {
-			this.token = token;
+			this(token, false);
+		}
+		
+		public boolean hasBody() {
+			return hasBody;
 		}
 		
 		public String getToken() {
@@ -70,14 +76,12 @@ public class HttpRequest {
 		if(!m.matches())
 			throw new HttpFormatException("Bad request line: '" + requestLine + "'.");
 		
-		String meth = m.group(1);
-		
-		if("GET".equals(meth)) {
-			method = GET;
-		} else if ("POST".equals(meth)) {
-			method = POST;
-		} else
-			throw new HttpFormatException("Unsupported HTTP method: " + meth);
+		String meth = m.group(1).toUpperCase();
+		try {
+			method = Enum.valueOf(Method.class, meth);
+		} catch (Exception e) {
+			throw new HttpFormatException("Unsupported HTTP method: " + meth, e);
+		}
 		
 		path = m.group(2);
 		
@@ -96,7 +100,7 @@ public class HttpRequest {
 				
 		String queryString = null;
 		
-		if(method == POST && getHeader("Content-Type").equals("application/x-www-form-urlencoded")) {
+		if(method.hasBody() && getHeader("Content-Type").equals("application/x-www-form-urlencoded")) {
 			int length = Integer.valueOf(getHeader("Content-Length"));
 			char[] buf = new char[100];
 			StringBuffer body = new StringBuffer();
@@ -105,7 +109,11 @@ public class HttpRequest {
 			}
 			
 			if(body.length() > 0) queryString = body.toString();
-		} else if (method == GET) {
+			
+			// we have already consumed the body, but let's allow client to read raw input anyway
+			this.is = new ByteArrayInputStream(queryString.getBytes());
+			this.r = new BufferedReader(new InputStreamReader(is));
+		} else if (!method.hasBody()) {
 			int question = path.indexOf('?');
 			if(question != -1) {
 				queryString = path.substring(question + 1);

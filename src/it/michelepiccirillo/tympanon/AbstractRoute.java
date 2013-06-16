@@ -2,14 +2,37 @@ package it.michelepiccirillo.tympanon;
 
 import it.michelepiccirillo.tympanon.HttpResponse.Status;
 
-import java.io.IOException;
-
 public class AbstractRoute implements Route {
 
 	@Override
-	public void service(HttpRequest req, HttpResponse res) throws IOException {
-		// TODO Auto-generated method stub
-
+	public void service(HttpRequest req, HttpResponse res) throws Exception {
+		switch(req.getMethod()) {
+		case OPTIONS:
+			options(req, res);
+			break;
+		case GET:
+			get(req, res);
+			break;
+		case HEAD:
+			head(req,res);
+			break;
+		case POST:
+			post(req, res);
+			break;
+		case PUT:
+			put(req,res);
+			break;
+		case DELETE:
+			delete(req,res);
+			break;
+		case TRACE:
+			trace(req,res);
+			break;
+		case CONNECT:
+			connect(req,res);
+			break;
+			
+		}
 	}
 	
 	protected void options(HttpRequest req, HttpResponse res) throws Exception {
