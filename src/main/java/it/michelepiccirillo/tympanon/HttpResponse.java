@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HttpResponse {
-	enum Status {
+	public enum Status {
 		CONTINUE(100, "Continue"),
 		SWITCHING_PROTOCOLS(101, "Switching protocols"),
 		OK(200, "OK"),

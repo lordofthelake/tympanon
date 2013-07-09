@@ -23,6 +23,8 @@ public class HttpServer implements Runnable {
 	private final Executor executor;
 	private Route defaultRoute;
 	
+	private ServerSocket ss;
+	
 	public HttpServer(InetSocketAddress address, Executor executor) {
 		this.address = address;
 		this.executor = executor;
@@ -32,11 +34,20 @@ public class HttpServer implements Runnable {
 		this(address, Executors.newCachedThreadPool());
 	}
 	
+	public synchronized void bind() throws IOException {
+		if(ss == null) {
+			ss = new ServerSocket();
+		}
+		
+		if(!ss.isBound())
+			ss.bind(address);
+	}
+	
 	public void run() {
 		final Logger log = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-		ServerSocket ss;
+
 		try {
-			ss = new ServerSocket(address.getPort(), 0, address.getAddress());
+			bind();
 			log.log(Level.INFO, "Server listening on " + ss.getInetAddress() + ":" + ss.getLocalPort());
 			
 			while(true) {
@@ -92,7 +103,26 @@ public class HttpServer implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public InetSocketAddress getInetSocketAddress() {
+		return address;
+	}
+	
+	public int getUsedPort() {
+		try {
+			bind();
+			return ss.getLocalPort();
+		} catch (IOException e) {
+			throw new RuntimeException();
+		}
+	}
+	
+	public void close() throws IOException {
+		if(ss == null)
+			return;
 		
+		ss.close();
 	}
 	
 	public HttpServer route(String url, Route route) {
