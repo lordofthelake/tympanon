@@ -2,6 +2,7 @@ package it.michelepiccirillo.tympanon;
 
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.URLDecoder;
 import java.util.Collections;
@@ -59,9 +60,12 @@ public class HttpRequest {
 	private Map<String, String> headers;
 	private Map<String, String> parameters = Collections.emptyMap();
 	
-	HttpRequest(InputStream is) throws IOException, HttpFormatException {
+	private InetSocketAddress remote;
+	
+	HttpRequest(InputStream is, InetSocketAddress remote) throws IOException, HttpFormatException {
 		this.is = is;
 		this.r = new BufferedReader(new InputStreamReader(is));
+		this.remote = remote;
 		
 		parse();
 	}
@@ -163,6 +167,10 @@ public class HttpRequest {
 
 	public String getPath() {
 		return path;
+	}
+	
+	public InetSocketAddress getClientAddress() {
+		return remote;
 	}
 	
 	public String toString() {

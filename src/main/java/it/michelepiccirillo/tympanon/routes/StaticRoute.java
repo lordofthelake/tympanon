@@ -31,7 +31,7 @@ public class StaticRoute extends AbstractRoute {
 			res.setHeader("Content-Type", URLConnection.guessContentTypeFromName(resource.getName()));
 			res.setHeader("Content-Length", String.valueOf(resource.length()));
 			
-			res.send();
+			res.flush();
 			
 			InputStream in = null;
 			try {

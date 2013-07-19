@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,12 +21,14 @@ public class HttpServer implements Runnable {
 	private Map<Pattern, Route> matchers = new LinkedHashMap<Pattern, Route>();
 	
 	private final InetSocketAddress address;
-	private final Executor executor;
+	private final ExecutorService executor;
 	private Route defaultRoute;
+	
+	private boolean stopped = false;
 	
 	private ServerSocket ss;
 	
-	public HttpServer(InetSocketAddress address, Executor executor) {
+	public HttpServer(InetSocketAddress address, ExecutorService executor) {
 		this.address = address;
 		this.executor = executor;
 	}
@@ -50,7 +53,7 @@ public class HttpServer implements Runnable {
 			bind();
 			log.log(Level.INFO, "Server listening on " + ss.getInetAddress() + ":" + ss.getLocalPort());
 			
-			while(true) {
+			while(!stopped) {
 				final Socket socket = ss.accept();
 				final OutputStream out = socket.getOutputStream();
 				final InputStream in = socket.getInputStream();
@@ -64,7 +67,7 @@ public class HttpServer implements Runnable {
 							
 							try {
 								try {
-									req = new HttpRequest(in);
+									req = new HttpRequest(in, (InetSocketAddress) socket.getRemoteSocketAddress());
 									log.log(Level.FINE, req.toString());
 					
 									res.setStatus(Status.OK);
@@ -105,6 +108,8 @@ public class HttpServer implements Runnable {
 		}
 	}
 	
+	
+	
 	public InetSocketAddress getInetSocketAddress() {
 		return address;
 	}
@@ -118,7 +123,11 @@ public class HttpServer implements Runnable {
 		}
 	}
 	
-	public void close() throws IOException {
+	
+	public void stop() throws IOException {
+		stopped = true;
+		executor.shutdownNow();
+		
 		if(ss == null)
 			return;
 		

@@ -146,7 +146,7 @@ public class HttpResponse {
 		}	
 	}
 
-	public void send() throws IOException {
+	void send() throws IOException {
 		if(!headersSent) {
 			PrintWriter writer = new PrintWriter(this.out);
 			
